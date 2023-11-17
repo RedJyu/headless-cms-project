@@ -1,11 +1,36 @@
 import { createClient } from 'contentful';
+import { useState, useEffect } from 'react';
 
 const client = createClient({
   space: '1okby48arebf',
   environment: 'master',
   accessToken: '8rijIQoTwCR4xBp0RjM5DL2iQC064tuhH_0mkYZZXcQ',
 });
+export const useFetchProjects = () => {
+  const [loading, setLoading] = useState(true);
+  const [projects, setProjects] = useState([]);
 
-client
-  .getEntries({ content_type: 'firstProject' })
-  .then((response) => console.log(response));
+  const getData = async () => {
+    try {
+      const response = await client.getEntries({
+        content_type: 'firstProject',
+      });
+      const projects = response.items.map((item) => {
+        const { title, url, image } = item.fields;
+        const id = item.sys.id;
+        const img = image?.fields?.file?.url;
+        return { title, url, id, img };
+      });
+      setProjects(projects);
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getData();
+  }, []);
+  return { loading, projects };
+};
